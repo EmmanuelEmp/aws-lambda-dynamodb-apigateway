@@ -13,7 +13,7 @@ This project implements an AWS Lambda function that **automatically archives ite
 
 ---
 
-## 🧭 Architecture Overview
+## Architecture Overview
 
 - **Trigger**: `rate(1 day)` via Amazon EventBridge
 - **Lambda Function**: 
