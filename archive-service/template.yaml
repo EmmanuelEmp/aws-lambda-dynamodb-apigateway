@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  Lambda function that archives DynamoDB items older than 30 days to S3 and deletes them daily.
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref ItemTable      # DynamoDB table name used in the Lambda function
+        BUCKET_NAME: !Ref ArchiveBucket # S3 bucket name where items will be archived
+
+Resources:
+
+  #Lambda Function to archive old items from DynamoDB and delete them
+  ArchiveOldItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: archiveOldItems
+      Handler: dist/archiveOldItems.handler
+      CodeUri: .
+      Description: Archives items older than 30 days from DynamoDB to S3 and deletes them.
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Scan           #Allows reading items from the table
+                - dynamodb:DeleteItem     #Allows deleting items after archiving
+              Resource: !GetAtt ItemTable.Arn
+            - Effect: Allow
+              Action:
+                - s3:PutObject            #Allows writing archived JSON files to S3
+              Resource: !Sub "${ArchiveBucket.Arn}/*"
+      Events:
+        #Scheduled event to trigger the function daily
+        DailyArchiveSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)        #Triggers once every day
+            Name: DailyArchiveTrigger
+            Description: Daily scheduled archiving of old items
+
+  #DynamoDB table that stores items
+  ItemTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: itemTable
+      AttributeDefinitions:
+        - AttributeName: itemId
+          AttributeType: S               #'itemId' is a string and acts as the partition key
+      KeySchema:
+        - AttributeName: itemId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST       #On demand billing mode (no capacity provisioning)
+
+  #S3 bucket to store archived items
+  ArchiveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: item-archive-bucket
+
+Outputs:
+
+  #Output the Lambda ARN for reference
+  ArchiveLambdaFunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt ArchiveOldItemsFunction.Arn
+
+  #Output the DynamoDB table name
+  DynamoDBTableName:
+    Description: DynamoDB Table Name
+    Value: !Ref ItemTable
+
+  #Output the S3 bucket name
+  S3ArchiveBucketName:
+    Description: S3 Bucket Name
+    Value: !Ref ArchiveBucket

@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "AWS CRUD API",
+    "description": "Postman collection for AWS Lambda CRUD API with DynamoDB",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "aws-crud-api-collection"
+  },
+  "item": [
+    {
+      "name": "Create Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sample Item\",\n  \"description\": \"This is a test item\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "items"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Item",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/items/:itemId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "items",
+            ":itemId"
+          ],
+          "variable": [
+            {
+              "key": "itemId",
+              "value": "your-item-id"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Item\",\n  \"description\": \"Updated description\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/items/:itemId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "items",
+            ":itemId"
+          ],
+          "variable": [
+            {
+              "key": "itemId",
+              "value": "your-item-id"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Item",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/items/:itemId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "items",
+            ":itemId"
+          ],
+          "variable": [
+            {
+              "key": "itemId",
+              "value": "your-item-id"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-api-id.execute-api.us-east-1.amazonaws.com/Prod"
+    }
+  ]
+}

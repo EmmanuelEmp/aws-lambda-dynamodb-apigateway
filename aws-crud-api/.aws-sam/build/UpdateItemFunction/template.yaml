@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  aws-crud-api - A serverless CRUD API with DynamoDB using AWS SAM and TypeScript
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TABLE_NAME: itemsTable
+    LoggingConfig:
+      LogFormat: JSON
+
+Resources:
+  # DynamoDB table to store items
+  ItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: itemsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: itemId
+          KeyType: HASH
+
+  # Lambda function to create a new item (POST /items)
+  CreateItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/createItem.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt ItemsTable.Arn
+      Events:
+        PostItem:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: post
+
+  # Lambda function to get a single item (GET /items/{itemId})
+  GetItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/getItem.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !GetAtt ItemsTable.Arn
+      Events:
+        GetItem:
+          Type: Api
+          Properties:
+            Path: /items/{itemId}
+            Method: get
+
+  # Lambda function to update an item (PUT /items/{itemId})
+  UpdateItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/updateItem.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !GetAtt ItemsTable.Arn
+      Events:
+        UpdateItem:
+          Type: Api
+          Properties:
+            Path: /items/{itemId}
+            Method: put
+
+  # Lambda function to delete an item (DELETE /items/{itemId})
+  DeleteItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/deleteItem.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+              Resource: !GetAtt ItemsTable.Arn
+      Events:
+        DeleteItem:
+          Type: Api
+          Properties:
+            Path: /items/{itemId}
+            Method: delete
+
+Outputs:
+  ApiUrl:
+    Description: "Base URL for your API Gateway"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
